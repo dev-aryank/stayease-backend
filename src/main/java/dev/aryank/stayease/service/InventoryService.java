@@ -4,6 +4,7 @@ import dev.aryank.stayease.entity.Room;
 
 public interface InventoryService {
 
-    void initializeRoomForAYear(Room roomId);
+    void initializeRoomForAYear(Room room);
+    void deleteFutureInventories(Room room);
 
 }

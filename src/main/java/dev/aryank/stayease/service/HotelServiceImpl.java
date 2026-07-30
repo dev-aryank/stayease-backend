@@ -2,6 +2,7 @@ package dev.aryank.stayease.service;
 
 import dev.aryank.stayease.dto.HotelDto;
 import dev.aryank.stayease.entity.Hotel;
+import dev.aryank.stayease.entity.Room;
 import dev.aryank.stayease.exception.ResourceNotFoundException;
 import dev.aryank.stayease.repository.HotelRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ public class HotelServiceImpl implements HotelService {
 
     private final HotelRepository hotelRepository;
     private final ModelMapper modelMapper;
+    private final InventoryService inventoryService;
 
     @Override
     public HotelDto createNewHotel(HotelDto hotelDto) {
@@ -68,6 +70,10 @@ public class HotelServiceImpl implements HotelService {
         hotel.setActive(true);
         hotelRepository.save(hotel);
 //        todo: create inventory for all the room for this hotel
+//        assuming only do it once
+        for (Room room : hotel.getRooms()) {
+            inventoryService.initializeRoomForAYear(room);
+        }
     }
 
 
