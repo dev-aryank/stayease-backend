@@ -5,6 +5,7 @@ import dev.aryank.stayease.entity.Hotel;
 import dev.aryank.stayease.entity.Room;
 import dev.aryank.stayease.exception.ResourceNotFoundException;
 import dev.aryank.stayease.repository.HotelRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -51,17 +52,20 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
+    @Transactional
     public void deleteHotelById(Long id) {
-        boolean exists = hotelRepository.existsById(id);
-        if(!exists){
-            throw new ResourceNotFoundException("Hotel not found with ID: "+id);
-        }
+        Hotel hotel = hotelRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID: "+ id));
         hotelRepository.deleteById(id);
-//        todo: delete the future inventories for this hotel;
+        for (Room room : hotel.getRooms()) {
+            inventoryService.deleteFutureInventories(room);
+        }
 //        return true;
     }
 
     @Override
+    @Transactional
     public void activateHotel(Long hotelId) {
         log.info("Activating the Hotel with ID {}", hotelId);
         Hotel hotel = hotelRepository

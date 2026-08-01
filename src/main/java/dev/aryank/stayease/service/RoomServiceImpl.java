@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,8 +34,6 @@ public class RoomServiceImpl implements RoomService {
         Room room = modelMapper.map(roomDto, Room.class);
         room.setHotel(hotel);
         room = roomRepository.save(room);
-
-//        todo: create inventory as soon as room is created and hotel is active
         if(hotel.getActive()){
             inventoryService.initializeRoomForAYear(room);
         }
@@ -57,22 +56,34 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public RoomDto getRoomById(Long hotelId, Long roomId) {
-        boolean hotelExists = hotelRepository.existsById(hotelId);
-        if(!hotelExists){
-            throw new ResourceNotFoundException("Hotel not found with ID: "+hotelId);
-        }
         log.info("Getting room with ID: {}", roomId);
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: "+roomId));
         return modelMapper.map(room, RoomDto.class);
     }
 
+    @Transactional
     @Override
     public void deleteRoomById(Long roomId) {
         log.info("Deleting room with ID: {}", roomId);
-        boolean exists = roomRepository.existsById(roomId);
-        if (!exists) {throw new ResourceNotFoundException("Room not found with ID: "+roomId);}
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: "+roomId));
+        inventoryService.deleteFutureInventories(room);
         roomRepository.deleteById(roomId);
-//        todo: delete all future inventory for this room
     }
+    /*
+     * We cannot physically delete a Room after deleting only future inventories.
+     *
+     * Reason:
+     * Past (and today's) inventory records still contain a foreign key (room_id)
+     * pointing to this Room. PostgreSQL prevents deleting the Room because it
+     * would leave orphaned references in the Inventory table, violating the
+     * foreign key constraint.
+     *
+     * Possible solutions:
+     * 1. Delete all inventory records associated with the room before deleting it.
+     * 2. Soft delete the room (mark it inactive) and keep historical inventory.
+     *    This is the preferred approach in real-world hotel booking systems since
+     *    past inventory and bookings are valuable historical data.
+     */
 }
