@@ -3,11 +3,9 @@ package dev.aryank.stayease.strategy;
 
 import dev.aryank.stayease.entity.Inventory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
-@Service
 @RequiredArgsConstructor
 public class OccupancyPricingStrategy implements PricingStrategy {
 

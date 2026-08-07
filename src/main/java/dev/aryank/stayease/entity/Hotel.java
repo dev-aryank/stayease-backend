@@ -1,5 +1,6 @@
 package dev.aryank.stayease.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,5 +45,6 @@ public class Hotel {
     private User owner;
 
     @OneToMany(mappedBy = "hotel")
+    @JsonIgnore
     private List<Room> rooms;
 }
