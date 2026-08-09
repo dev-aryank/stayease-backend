@@ -6,10 +6,12 @@ import dev.aryank.stayease.dto.GuestDto;
 import dev.aryank.stayease.entity.*;
 import dev.aryank.stayease.entity.enums.BookingStatus;
 import dev.aryank.stayease.exception.ResourceNotFoundException;
+import dev.aryank.stayease.exception.UnAuthorisedException;
 import dev.aryank.stayease.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,6 +90,12 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
                 new ResourceNotFoundException("Booking not found with id " + bookingId));
 
+        User user = getCurrentUser();
+
+        if(!user.equals(booking.getUser())) {
+            throw new UnAuthorisedException("Booking does not belong to this user with id: " + user.getId());
+        }
+
         if (hasBookingExpired(booking)) {
             throw new IllegalStateException("Booking has already expired");
         }
@@ -98,7 +106,7 @@ public class BookingServiceImpl implements BookingService {
 
         for (GuestDto guestDto : guestDtoList) {
             Guest guest = modelMapper.map(guestDto, Guest.class);
-            guest.setUser(getCurrentUser());
+            guest.setUser(user);
             guest = guestRepository.save(guest);
             booking.getGuests().add(guest);
         }
@@ -112,8 +120,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public User getCurrentUser(){
-        User user = new User();
-        user.setId(1L); // TODO: REMOVE DUMMY USER
-        return user;
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
