@@ -1,8 +1,6 @@
 # StayEase Backend
 
-StayEase is a hotel booking backend built with Spring Boot. It models the core workflows of a real hotel-booking platform: hotel and room management, date-wise inventory, dynamic pricing, hotel discovery, booking reservations, guest management, JWT-based authentication and authorization, Stripe Checkout payments, refunds, reporting, and concurrency-safe inventory updates.
-
-The project was designed as a backend-focused portfolio project, with the implementation organized around clear service boundaries, JPA entities, DTOs, repository queries, Spring Security, transactional booking flows, and design-pattern-based pricing.
+StayEase is a Spring Boot hotel booking backend that handles the main parts of a hotel reservation system. It supports hotel and room management, date-based room inventory, dynamic pricing, hotel search, booking and guest management, JWT authentication, Stripe payments and refunds, booking reports, and safe inventory updates to prevent overbooking.
 
 ## Table of Contents
 
