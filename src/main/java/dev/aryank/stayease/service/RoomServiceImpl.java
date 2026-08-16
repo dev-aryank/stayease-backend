@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static dev.aryank.stayease.util.AppUtils.getCurrentUser;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -92,19 +94,32 @@ public class RoomServiceImpl implements RoomService {
         inventoryService.deleteAllInventories(room);
         roomRepository.deleteById(roomId);
     }
-    /*
-     * We cannot physically delete a Room after deleting only future inventories.
-     *
-     * Reason:
-     * Past (and today's) inventory records still contain a foreign key (room_id)
-     * pointing to this Room. PostgreSQL prevents deleting the Room because it
-     * would leave orphaned references in the Inventory table, violating the
-     * foreign key constraint.
-     *
-     * Possible solutions:
-     * 1. Delete all inventory records associated with the room before deleting it.
-     * 2. Soft delete the room (mark it inactive) and keep historical inventory.
-     *    This is the preferred approach in real-world hotel booking systems since
-     *    past inventory and bookings are valuable historical data.
-     */
+
+    @Override
+    @Transactional
+    public RoomDto updateRoomById(Long hotelId, Long roomId, RoomDto roomDto) {
+
+        log.info("Updating the Room with ID {}", roomId);
+        Hotel hotel = hotelRepository
+                .findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID: "+hotelId));
+
+        User user = getCurrentUser();
+        if(!user.equals(hotel.getOwner())) {
+            throw new UnAuthorisedException("Hotel does not belong to this user with id: "+hotelId);
+        }
+
+        Room room = roomRepository.findById(roomId).orElseThrow(
+                () -> new ResourceNotFoundException("Room not found with ID: "+roomId));
+
+        modelMapper.map(roomDto, room);
+        room.setId(roomId);
+
+//        TODO: If price or inventory is updated, then update the inventory for this room
+        room = roomRepository.save(room);
+
+
+        return modelMapper.map(room, RoomDto.class);
+    }
+
 }

@@ -4,7 +4,9 @@ import com.stripe.model.Event;
 import dev.aryank.stayease.dto.BookingDto;
 import dev.aryank.stayease.dto.BookingRequest;
 import dev.aryank.stayease.dto.GuestDto;
+import dev.aryank.stayease.dto.HotelReportDto;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -21,4 +23,10 @@ public interface BookingService {
     void cancelBooking(Long bookingId);
 
     String getBookingStatus(Long bookingId);
+
+    List<BookingDto> getBookingsByHotelId(Long hotelId);
+
+    HotelReportDto getHotelReport(Long hotelId, LocalDate startDate, LocalDate endDate);
+
+    List<BookingDto> getMyBookings();
 }

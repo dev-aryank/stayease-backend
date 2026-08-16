@@ -3,6 +3,8 @@ package dev.aryank.stayease.service;
 import dev.aryank.stayease.dto.HotelDto;
 import dev.aryank.stayease.dto.HotelInfoDto;
 
+import java.util.List;
+
 public interface HotelService {
     HotelDto createNewHotel(HotelDto hotelDto);
     HotelDto getHotelById(Long id);
@@ -11,4 +13,6 @@ public interface HotelService {
     void activateHotel(Long hotelId);
 
     HotelInfoDto getHotelInfoById(Long hotelId);
+
+    List<HotelDto> getAllHotels();
 }
